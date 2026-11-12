@@ -1,0 +1,50 @@
+{% from "_icons.html" import icon %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MIN{% endblock %} · Inventario MIN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% set ep = request.endpoint or '' %}
+<header class="topbar">
+  <a class="brand" href="{{ url_for('dashboard') }}">
+    {{ icon('gear', 34) }}
+    <span><b>MIN</b><small>Mantenimiento<br>Industrial del Norte</small></span>
+  </a>
+  <div class="top-right">
+    <span class="top-item hide-sm">{{ icon('pin', 16) }} Almacén Principal</span>
+    <a class="top-item bell" href="{{ url_for('piezas', estado='bajo') if num_alertas else '#' }}" title="Alertas de inventario">
+      {{ icon('bell', 18) }}{% if num_alertas %}<span class="badge-dot">{{ num_alertas }}</span>{% endif %}
+    </a>
+    <span class="top-item user-chip">{{ icon('user', 16) }} {{ user.nombre }} <span class="role role-{{ user.rol[:3]|lower }}">{{ user.rol }}</span></span>
+    <form method="post" action="{{ url_for('logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="top-item logout" title="Cerrar sesión">{{ icon('logout', 16) }}<span class="hide-sm">Salir</span></button>
+    </form>
+  </div>
+</header>
+<div class="layout">
+  <nav class="sidebar">
+    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if ep == 'dashboard' }}">{{ icon('home') }}<span>Dashboard</span></a>
+    <a href="{{ url_for('piezas') }}" class="{{ 'active' if ep.startswith('pieza') }}">{{ icon('box') }}<span>Piezas</span></a>
+    <a href="{{ url_for('solicitudes') }}" class="{{ 'active' if ep.startswith('solicitud') }}">{{ icon('clipboard') }}<span>Solicitudes</span>
+      {% if user.rol == 'Gerente' and num_pendientes %}<em class="count">{{ num_pendientes }}</em>{% endif %}</a>
+    {% if user.rol in ('Administrador', 'Gerente') %}
+    <a href="{{ url_for('movimientos') }}" class="{{ 'active' if ep in ('movimientos', 'entrada') }}">{{ icon('swap') }}<span>Movimientos</span></a>
+    <a href="{{ url_for('reportes') }}" class="{{ 'active' if ep.startswith('reporte') }}">{{ icon('chart') }}<span>Reportes</span></a>
+    {% endif %}
+    {% if user.rol == 'Administrador' %}
+    <a href="{{ url_for('usuarios') }}" class="{{ 'active' if ep.startswith('usuario') }}">{{ icon('users') }}<span>Usuarios</span></a>
+    {% endif %}
+  </nav>
+  <main class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="flash flash-{{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

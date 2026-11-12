@@ -1,0 +1,35 @@
+{% from "_icons.html" import icon %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión · Inventario MIN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page">
+  <div class="login-wrap">
+    <section class="login-hero">
+      <div class="brand big">{{ icon('gear', 52) }}<span><b>MIN</b><small>Mantenimiento Industrial del Norte</small></span></div>
+      <h1>Control de Inventario de Piezas y Refacciones</h1>
+      <p>Consulta existencias, solicita materiales, autoriza salidas y registra cada movimiento del almacén en un solo lugar.</p>
+      <ul class="hero-list">
+        <li>{{ icon('box', 16) }} Administrador: piezas y usuarios</li>
+        <li>{{ icon('check', 16) }} Gerente: autorizaciones y reportes</li>
+        <li>{{ icon('clipboard', 16) }} Técnico: consultas y solicitudes</li>
+      </ul>
+    </section>
+    <section class="login-card">
+      <h2>{{ icon('lock', 22) }} Iniciar sesión</h2>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}<div class="flash flash-{{ cat }}">{{ msg }}</div>{% endfor %}
+      {% endwith %}
+      <form method="post" autocomplete="off">
+        <label>Usuario<input name="username" required autofocus placeholder="ej. tecnico1"></label>
+        <label>Contraseña<input name="password" type="password" required placeholder="••••••••"></label>
+        <button class="btn primary block">Entrar al sistema</button>
+      </form>
+      <p class="muted small">Acceso exclusivo para personal autorizado. Cada rol ve únicamente las funciones que le corresponden.</p>
+    </section>
+  </div>
+</body>
+</html>

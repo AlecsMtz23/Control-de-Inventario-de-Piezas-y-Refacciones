@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Usuarios <span>Administración de cuentas</span></h1>
+  <a class="btn primary" href="{{ url_for('usuario_form') }}">{{ icon('plus', 16) }} Nuevo usuario</a>
+</div>
+<section class="card">
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody>
+    {% for u in usuarios %}
+      <tr class="{{ 'row-muted' if not u.activo }}">
+        <td><b>{{ u.usuario }}</b></td><td>{{ u.nombre }}</td>
+        <td><span class="role role-{{ u.rol[:3]|lower }}">{{ u.rol }}</span></td>
+        <td>{% if u.activo %}<span class="pill pill-green">Activo</span>{% else %}<span class="pill pill-red">Inactivo</span>{% endif %}</td>
+        <td class="nowrap">
+          <a class="icon-btn blue" title="Editar" href="{{ url_for('usuario_form', uid=u.id) }}">{{ icon('edit', 15) }}</a>
+          {% if u.id != user.id %}
+          <form method="post" action="{{ url_for('usuario_eliminar', uid=u.id) }}" class="inline"
+                onsubmit="return confirm('¿Eliminar al usuario {{ u.usuario }}?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="icon-btn red" title="Eliminar">{{ icon('trash', 15) }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% from "_ui.html" import stock_badge with context %}
+{% block title %}Piezas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Piezas <span>{{ 'Gestión de piezas' if user.rol == 'Administrador' else 'Consulta de inventario' }}</span></h1>
+  <div class="actions">
+    {% if user.rol == 'Administrador' %}
+      <a class="btn" href="{{ url_for('entrada') }}">{{ icon('inbox', 16) }} Recibir inventario</a>
+      <a class="btn primary" href="{{ url_for('pieza_nueva') }}">{{ icon('plus', 16) }} Agregar pieza</a>
+    {% elif user.rol == 'Técnico' %}
+      <a class="btn primary" href="{{ url_for('solicitud_nueva') }}">{{ icon('cart', 16) }} Crear solicitud</a>
+    {% endif %}
+  </div>
+</div>
+
+<form class="card filters" method="get">
+  <label class="grow">{{ icon('search', 16) }}<input name="q" value="{{ q }}" placeholder="Buscar por código, nombre o ubicación"></label>
+  <select name="categoria">
+    <option value="">Todas las categorías</option>
+    {% for c in CATEGORIAS %}<option {{ 'selected' if c == cat }}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="estado">
+    <option value="">Todos los estados</option>
+    <option value="ok" {{ 'selected' if est == 'ok' }}>En stock</option>
+    <option value="bajo" {{ 'selected' if est == 'bajo' }}>Stock bajo</option>
+    <option value="sin" {{ 'selected' if est == 'sin' }}>Sin stock</option>
+  </select>
+  <button class="btn primary">Buscar</button>
+  {% if q or cat or est %}<a class="btn" href="{{ url_for('piezas') }}">Limpiar</a>{% endif %}
+</form>
+
+<section class="card">
+  <p class="muted small">{{ piezas|length }} pieza(s) encontradas.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th class="num">Cantidad</th><th class="num">Mínimo</th><th>Ubicación</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody>
+    {% for p in piezas %}
+      <tr class="{{ 'row-red' if p.cantidad == 0 else 'row-amber' if p.cantidad <= p.minimo }}">
+        <td><b>{{ p.codigo }}</b></td><td>{{ p.nombre }}</td><td>{{ p.categoria }}</td>
+        <td class="num"><b>{{ p.cantidad }}</b></td><td class="num">{{ p.minimo }}</td><td>{{ p.ubicacion }}</td>
+        <td>{{ stock_badge(p) }}</td>
+        <td class="nowrap">
+          {% if user.rol == 'Administrador' %}
+            <a class="icon-btn blue" title="Editar" href="{{ url_for('pieza_editar', pid=p.id) }}">{{ icon('edit', 15) }}</a>
+            <a class="icon-btn green" title="Registrar entrada" href="{{ url_for('entrada', pieza=p.id) }}">{{ icon('inbox', 15) }}</a>
+            <form method="post" action="{{ url_for('pieza_eliminar', pid=p.id) }}" class="inline"
+                  onsubmit="return confirm('¿Eliminar la pieza {{ p.codigo }}? Esta acción no se puede deshacer.')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="icon-btn red" title="Eliminar">{{ icon('trash', 15) }}</button>
+            </form>
+          {% elif user.rol == 'Técnico' %}
+            {% if p.cantidad > 0 %}<a class="btn sm" href="{{ url_for('solicitud_nueva', pieza=p.id) }}">{{ icon('cart', 14) }} Solicitar</a>
+            {% else %}<span class="muted small">No disponible</span>{% endif %}
+          {% else %}
+            <span class="muted small">Solo consulta</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="8" class="muted">No se encontraron piezas con esos criterios.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}
